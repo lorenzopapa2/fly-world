@@ -3,8 +3,9 @@
 </p>
 
 <p align="center">
-  A browser workbench for building your own fly-connectome experiments.
-  Real anatomy, a replaceable environment, and model outputs mapped by neuron ID.
+  Fly-world: an outdoor small garden (室外小花园) beside real fly anatomy.
+  Watch a cozy garden while the experiment clock runs; map optional model
+  outputs onto MaleCNS neuron IDs.
 </p>
 
 <p align="center">
@@ -16,14 +17,22 @@
 
 ---
 
-Start with a fly body and measured brain coordinates already on screen. Replace
-the environment, connect your own model and inspect its outputs against the
-same MaleCNS neuron IDs. Training and inference stay in your own stack; the
-browser handles the experiment view.
+This repository is a modified [fly-connectome-template][repo] workbench. The
+left panel is a visual **outdoor small garden** (室外小花园): plants, flowers,
+a stone path, sunlight, a fruit tree and a compost hint. Experiment time sways
+the scene (wind, butterflies). The garden is a place to watch, not a stimulus
+that drives a neural model.
 
+Start with a fly body and measured brain coordinates already on screen. Connect
+your own model and inspect its outputs against the same MaleCNS neuron IDs.
+Training and inference stay in your own stack; the browser handles the
+experiment view.
+
+- **Outdoor garden world.** `Environment.tsx` is an SVG/CSS garden tied to the
+  shared `time` clock. It does not encode observations or invent activity.
 - **Real anatomy.** 124,289 classified brain soma positions from MaleCNS v1.0,
   rendered without stretching the axes, plus the anatomical Flybody mesh.
-- **Replaceable parts.** Environment on the left, brain above the body on the
+- **Replaceable parts.** Garden on the left, brain above the body on the
   right. Each is a separate React component; the layout stacks on mobile.
 - **An explicit model boundary.** JSON replay with timestamps, body IDs,
   normalized values and declared provenance. No neural activity is invented
@@ -45,8 +54,8 @@ npm ci
 npm run dev
 ```
 
-Open the URL printed by Vite. The example stimulus starts automatically;
-the brain initially shows anatomy only. **Load synthetic example**, then
+Open the URL printed by Vite. The garden scene starts with the experiment
+clock; the brain initially shows anatomy only. **Load synthetic example**, then
 **Play**, demonstrates the output pipeline with clearly labeled test values.
 **Load model JSON** reads your own replay locally in the browser.
 
@@ -54,7 +63,7 @@ the brain initially shows anatomy only. **Load synthetic example**, then
 
 | File | Replace or connect |
 | --- | --- |
-| `src/components/Environment.tsx` | Your game, video or sensory scene |
+| `src/components/Environment.tsx` | Outdoor garden scene (or your own sensory world) |
 | `src/components/BrainScene.tsx` | Your model's `ActivityFrame`, keyed by MaleCNS body ID |
 | `src/components/FlyScene.tsx` | Your motor decoder or physics adapter |
 | `src/App.tsx` | Experiment clock, controls and replay/live adapter |
