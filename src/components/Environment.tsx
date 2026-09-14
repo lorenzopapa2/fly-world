@@ -46,10 +46,10 @@ function FruitFly({
 }) {
   return (
     <g transform={`translate(${x} ${y}) rotate(${angle}) scale(${scale})`} opacity=".92">
-      <ellipse cx="0" cy="0" rx="3.1" ry="1.55" fill={body} />
-      <ellipse cx="-3.4" cy="-.5" rx="3.1" ry=".85" fill="#d5e0d4" opacity=".75" />
-      <ellipse cx="3.2" cy="-.4" rx="2.9" ry=".8" fill="#d5e0d4" opacity=".75" />
-      <circle cx="2.6" cy="-.15" r=".55" fill="#1a1410" />
+      <ellipse cx="0" cy="0" rx="4.4" ry="2.15" fill={body} />
+      <ellipse cx="-4.6" cy="-.6" rx="4.2" ry="1.15" fill="#d5e0d4" opacity=".78" />
+      <ellipse cx="4.3" cy="-.45" rx="3.9" ry="1.05" fill="#d5e0d4" opacity=".78" />
+      <circle cx="3.6" cy="-.2" r=".75" fill="#1a1410" />
     </g>
   );
 }
@@ -57,8 +57,8 @@ function FruitFly({
 function Egg({ x, y, angle }: { x: number; y: number; angle: number }) {
   return (
     <g transform={`translate(${x} ${y}) rotate(${angle})`}>
-      <ellipse cx="0" cy="0" rx="2.6" ry="1.7" fill="#f3e6c4" stroke="#c9b48a" strokeWidth=".35" />
-      <ellipse cx="-.6" cy="-.4" rx="1" ry=".55" fill="#fff8e6" opacity=".7" />
+      <ellipse cx="0" cy="0" rx="3.5" ry="2.3" fill="#f3e6c4" stroke="#c9b48a" strokeWidth=".4" />
+      <ellipse cx="-.8" cy="-.5" rx="1.3" ry=".7" fill="#fff8e6" opacity=".7" />
     </g>
   );
 }
@@ -282,7 +282,7 @@ export function Environment({ time }: { time: number }) {
               x={pose.x}
               y={pose.y}
               angle={pose.angle}
-              scale={young ? 0.62 : 1}
+              scale={young ? 0.78 : 1.25}
               body={young ? '#6a5340' : critter.id % 2 ? '#3a2a1c' : '#5a3d24'}
             />
           );
