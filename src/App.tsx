@@ -41,7 +41,7 @@ export function App() {
   };
   const frame = replay ? frameAt(replay,time) : null;
   return <>
-    <header><h1>YOUR EXPERIMENT</h1><span>Environment / anatomy / model output</span><a href="https://github.com/cobanov/fly-connectome-template#readme">Template guide ↗</a></header>
+    <header><h1>FLY-WORLD</h1><span>室外小花园 · outdoor garden · anatomy · optional replay</span><a href="https://github.com/cobanov/fly-connectome-template#readme">Template guide ↗</a></header>
     <main>
       <div className="toolbar">
         <span className="status">{playing?'Running':'Paused'} · {time.toFixed(2)} s</span>
@@ -59,7 +59,7 @@ export function App() {
       </div>
       {error&&<p className="error" role="alert">{error}</p>}
       <div className="workbench">
-        <section className="panel environment-panel"><h2>01 / ENVIRONMENT</h2><Environment time={time}/><div className="panel-bottom">Generic stimulus · no game or reward function bundled</div></section>
+        <section className="panel environment-panel"><h2>01 / OUTDOOR GARDEN <span>室外小花园</span></h2><Environment time={time}/><div className="panel-bottom">Watchable garden scene · clock moves wind and insects, not a neural model</div></section>
         <section className="panel brain-panel"><h2>02 / BRAIN SOMA ATLAS <span>MaleCNS v1.0</span></h2>
           {atlas?<BrainScene atlas={atlas} frame={frame}/>:<p className="loading" role="status">Loading measured anatomy…</p>}
           <div className="panel-bottom">{atlas?.visibleIds.size.toLocaleString('en-US') ?? '…'} measured somata <a href={asset('data/brain-atlas/NOTICE.md')}>Data notice ↗</a></div>
@@ -72,7 +72,7 @@ export function App() {
         {replay&&<><p>Normalization: {replay.source.normalization}</p><p>{replay.source.kind==='synthetic'?'Demonstration values only; not neural activity and not driven by the stimulus.':'Source category is declared by the uploaded file, not independently verified by this viewer.'}</p></>}
         <label>Experiment time <input type="range" aria-label="Experiment time" min="0" max={duration} step=".01" value={time} onChange={event=>setTime(Number(event.target.value))}/><span>{duration.toFixed(1)} s</span></label>
       </section>
-      <details><summary>Scientific scope &amp; customization</summary><p>The atlas contains curated cell-body positions, not neurite morphology or synaptic edges. Points keep native proportions. Missing soma locations are never generated. The brain filter selects optic, central and descending classes; it is not a complete brain segmentation.</p><p>Replace Environment.tsx with your environment. Pass ActivityFrame values to BrainScene using MaleCNS body IDs and time in seconds. The JSON loader validates the dataset, visible IDs and normalized values. GPU training and model inference run separately.</p><p>Dataset creators: FlyEM / HHMI Janelia, University of Cambridge, MRC Laboratory of Molecular Biology and Google Research. <a href="https://male-cns.janelia.org/download/">MaleCNS data and publication</a>, CC BY 4.0. <a href={asset('data/brain-atlas/manifest.json')}>Exact source, filters and hashes</a>.</p><p>Template code has a custom attribution-required license. Keep the linked template/author credit in your web UI and repository README. Third-party assets retain their own licenses.</p></details>
+      <details><summary>Scientific scope &amp; customization</summary><p>The atlas contains curated cell-body positions, not neurite morphology or synaptic edges. Points keep native proportions. Missing soma locations are never generated. The brain filter selects optic, central and descending classes; it is not a complete brain segmentation.</p><p>The left panel is a visual outdoor garden (室外小花园). Experiment time sways plants and insects in Environment.tsx; it does not encode observations or drive a neural model. Pass ActivityFrame values to BrainScene using MaleCNS body IDs and time in seconds. The JSON loader validates the dataset, visible IDs and normalized values. GPU training and model inference run separately.</p><p>Dataset creators: FlyEM / HHMI Janelia, University of Cambridge, MRC Laboratory of Molecular Biology and Google Research. <a href="https://male-cns.janelia.org/download/">MaleCNS data and publication</a>, CC BY 4.0. <a href={asset('data/brain-atlas/manifest.json')}>Exact source, filters and hashes</a>.</p><p>Template code has a custom attribution-required license. Keep the linked template/author credit in your web UI and repository README. Third-party assets retain their own licenses.</p></details>
     </main>
     <Attribution/>
   </>;
