@@ -20,8 +20,10 @@
 This repository is a modified [fly-connectome-template][repo] workbench. The
 left panel is a visual **outdoor small garden** (室外小花园): plants, flowers,
 a stone path, sunlight, a fruit tree and a compost hint. Experiment time sways
-the scene (wind, butterflies). The garden is a place to watch, not a stimulus
-that drives a neural model.
+the scene (wind, butterflies) and a **toy garden-life layer**: two founding
+fruit flies can meet, lay eggs and grow, with a soft adult cap. That cartoon
+is not MaleCNS-driven reproduction and not validated fly behavior. It does
+not write values into the brain panel.
 
 Start with a fly body and measured brain coordinates already on screen. Connect
 your own model and inspect its outputs against the same MaleCNS neuron IDs.
@@ -29,7 +31,11 @@ Training and inference stay in your own stack; the browser handles the
 experiment view.
 
 - **Outdoor garden world.** `Environment.tsx` is an SVG/CSS garden tied to the
-  shared `time` clock. It does not encode observations or invent activity.
+  shared `time` clock, including a toy ecology of breedable fruit flies.
+  Garden life is separate from atlas activity.
+- **Optional MaleCNS replay.** `public/examples/garden-fly-activity.example.json`
+  is an authored display fixture with real visible MaleCNS body IDs. Load it
+  with **Load garden atlas JSON**. Nothing is invented until a file is loaded.
 - **Real anatomy.** 124,289 classified brain soma positions from MaleCNS v1.0,
   rendered without stretching the axes, plus the anatomical Flybody mesh.
 - **Replaceable parts.** Garden on the left, brain above the body on the
@@ -54,16 +60,19 @@ npm ci
 npm run dev
 ```
 
-Open the URL printed by Vite. The garden scene starts with the experiment
-clock; the brain initially shows anatomy only. **Load synthetic example**, then
-**Play**, demonstrates the output pipeline with clearly labeled test values.
-**Load model JSON** reads your own replay locally in the browser.
+Open the URL printed by Vite. The garden starts with two adult fruit flies on
+the experiment clock; the brain initially shows anatomy only. **Load garden
+atlas JSON** (or **Load synthetic example**), then **Play**, maps authored
+values onto real MaleCNS IDs. **Load model JSON** reads your own replay
+locally in the browser. Garden breeding and atlas JSON stay separate.
 
 ## Make it yours
 
 | File | Replace or connect |
 | --- | --- |
-| `src/components/Environment.tsx` | Outdoor garden scene (or your own sensory world) |
+| `src/components/Environment.tsx` | Outdoor garden scene and toy fruit-fly life layer |
+| `src/lib/gardenLife.ts` | Cartoon meet / egg / grow rules (not connectome biology) |
+| `public/examples/garden-fly-activity.example.json` | Authored MaleCNS-ID display fixture for the brain panel |
 | `src/components/BrainScene.tsx` | Your model's `ActivityFrame`, keyed by MaleCNS body ID |
 | `src/components/FlyScene.tsx` | Your motor decoder or physics adapter |
 | `src/App.tsx` | Experiment clock, controls and replay/live adapter |
@@ -96,7 +105,7 @@ sample of those same measured coordinates.
 ## Verify and deploy
 
 ```sh
-npm test                # model-output contract and the bundled fixture
+npm test                # replay contract, garden life rules, bundled fixtures
 npm run check:assets    # anatomical asset hashes
 npm run build           # type check and static build
 npm run preview         # inspect dist/ locally
