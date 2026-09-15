@@ -4,8 +4,8 @@
 
 <p align="center">
   Fly-world: an outdoor small garden (室外小花园) beside real fly anatomy.
-  Watch a cozy garden while the experiment clock runs; map optional model
-  outputs onto MaleCNS neuron IDs.
+  A toy fruit-fly colony develops on this browser's 24h wall clock;
+  optional model outputs map onto MaleCNS neuron IDs.
 </p>
 
 <p align="center">
@@ -19,20 +19,22 @@
 
 This repository is a modified [fly-connectome-template][repo] workbench. The
 left panel is a visual **outdoor small garden** (室外小花园): plants, flowers,
-a stone path, sunlight, a fruit tree and a compost hint. Experiment time sways
-the scene (wind, butterflies) and a **toy garden-life layer**: two founding
-fruit flies can meet, lay eggs and grow, with a soft adult cap. That cartoon
-is not MaleCNS-driven reproduction and not validated fly behavior. It does
-not write values into the brain panel.
+a stone path, sunlight, a fruit tree and a compost hint. A **toy garden
+colony** starts with two adult fruit flies that can meet, lay eggs and grow,
+with a soft population cap. The colony follows **this browser's wall clock**,
+persists in `localStorage`, and catch-up applies after the tab was closed
+(capped at 24 simulated hours). Play/Pause only scrubs optional brain replay.
+That cartoon is not MaleCNS-driven reproduction and not validated fly
+behavior. It does not write values into the brain panel.
 
 Start with a fly body and measured brain coordinates already on screen. Connect
 your own model and inspect its outputs against the same MaleCNS neuron IDs.
 Training and inference stay in your own stack; the browser handles the
 experiment view.
 
-- **Outdoor garden world.** `Environment.tsx` is an SVG/CSS garden tied to the
-  shared `time` clock, including a toy ecology of breedable fruit flies.
-  Garden life is separate from atlas activity.
+- **Outdoor garden world.** `Environment.tsx` is an SVG garden. The colony in
+  `gardenLife.ts` / `gardenColony.ts` auto-runs on wall-clock time and is
+  saved locally. Garden life is separate from atlas activity.
 - **Optional MaleCNS replay.** `public/examples/garden-fly-activity.example.json`
   is an authored display fixture with real visible MaleCNS body IDs. Load it
   with **Load garden atlas JSON**. Nothing is invented until a file is loaded.
@@ -61,10 +63,11 @@ npm run dev
 ```
 
 Open the URL printed by Vite. The garden starts with two adult fruit flies on
-the experiment clock; the brain initially shows anatomy only. **Load garden
-atlas JSON** (or **Load synthetic example**), then **Play**, maps authored
-values onto real MaleCNS IDs. **Load model JSON** reads your own replay
-locally in the browser. Garden breeding and atlas JSON stay separate.
+the browser wall clock (saved here; **Reset colony** returns to the founding
+pair). The brain initially shows anatomy only. **Load garden atlas JSON** (or
+**Load synthetic example**), then **Play**, maps authored values onto real
+MaleCNS IDs. **Load model JSON** reads your own replay locally. Garden
+breeding and atlas JSON stay separate.
 
 ## Make it yours
 
@@ -72,6 +75,7 @@ locally in the browser. Garden breeding and atlas JSON stay separate.
 | --- | --- |
 | `src/components/Environment.tsx` | Outdoor garden scene and toy fruit-fly life layer |
 | `src/lib/gardenLife.ts` | Cartoon meet / egg / grow rules (not connectome biology) |
+| `src/lib/gardenColony.ts` | localStorage persist, pause, and offline catch-up |
 | `public/examples/garden-fly-activity.example.json` | Authored MaleCNS-ID display fixture for the brain panel |
 | `src/components/BrainScene.tsx` | Your model's `ActivityFrame`, keyed by MaleCNS body ID |
 | `src/components/FlyScene.tsx` | Your motor decoder or physics adapter |

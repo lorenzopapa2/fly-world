@@ -4,7 +4,8 @@ import { FlyScene } from './components/FlyScene';
 import { Environment } from './components/Environment';
 import { Attribution } from './components/Attribution';
 import { asset, loadAtlas, type Atlas } from './lib/atlas';
-import { GARDEN_CLOCK_S } from './lib/gardenLife';
+import { countStages, formatColonyAge, GARDEN_CLOCK_S } from './lib/gardenLife';
+import { useGardenColony } from './lib/useGardenColony';
 import { frameAt, parseReplay, type ModelReplay } from './lib/replay';
 
 export function App() {
@@ -12,6 +13,8 @@ export function App() {
   const [error,setError] = useState('');
   const [replay,setReplay] = useState<ModelReplay|null>(null);
   const [playing,setPlaying] = useState(true), [time,setTime] = useState(0);
+  const colony = useGardenColony();
+  const colonyCounts = countStages(colony.life.critters);
   const file = useRef<HTMLInputElement>(null);
   const duration = replay?.frames.at(-1)?.time ?? GARDEN_CLOCK_S;
   useEffect(() => {
@@ -44,12 +47,12 @@ export function App() {
   const gardenExample = () => loadExample('examples/garden-fly-activity.example.json', 'Garden atlas example unavailable.');
   const frame = replay ? frameAt(replay,time) : null;
   return <>
-    <header><h1>FLY-WORLD</h1><span>室外小花园 · toy garden life · anatomy · optional replay</span><a href="https://github.com/cobanov/fly-connectome-template#readme">Template guide ↗</a></header>
+    <header><h1>FLY-WORLD</h1><span>室外小花园 · 24h toy colony · anatomy · optional replay</span><a href="https://github.com/cobanov/fly-connectome-template#readme">Template guide ↗</a></header>
     <main>
       <div className="toolbar">
         <span className="status">{playing?'Running':'Paused'} · {time.toFixed(2)} s</span>
         <div className="controls">
-          <button onClick={()=>{setTime(0);setPlaying(false);}}>Reset</button>
+          <button onClick={()=>{setTime(0);setPlaying(false);}}>Reset clock</button>
           <button onClick={()=>{if(time>=duration)setTime(0);setPlaying(!playing);}}>{playing?'Pause':'Play'}</button>
           <button disabled={!atlas} onClick={()=>void example()}>Load synthetic example</button>
           <button disabled={!atlas} onClick={()=>void gardenExample()}>Load garden atlas JSON</button>
@@ -62,8 +65,16 @@ export function App() {
         </div>
       </div>
       {error&&<p className="error" role="alert">{error}</p>}
+      <div className="colony-bar" aria-label="Toy garden colony">
+        <span className="status">Colony {colony.paused?'paused':'auto'} · {formatColonyAge(colony.life.colonyTime)} · {colonyCounts.adults} adults · {colonyCounts.eggs} eggs · {colonyCounts.young} young</span>
+        <div className="controls">
+          <button onClick={colony.paused?colony.resumeColony:colony.pauseColony}>{colony.paused?'Resume colony':'Pause colony'}</button>
+          <button onClick={colony.resetColony}>Reset colony</button>
+        </div>
+      </div>
+      <p className="colony-note">Toy ecology on this browser&apos;s wall clock, stored in localStorage. Offline hours still count (catch-up capped at 24h). Play/Pause is only the brain replay scrubber. Not a server and not MaleCNS biology.</p>
       <div className="workbench">
-        <section className="panel environment-panel"><h2>01 / OUTDOOR GARDEN <span>室外小花园</span></h2><Environment time={time}/><div className="panel-bottom">Toy garden life · two founding flies can breed · not connectome biology</div></section>
+        <section className="panel environment-panel"><h2>01 / OUTDOOR GARDEN <span>室外小花园</span></h2><Environment life={colony.life} motionTime={colony.wallMs/1000} wallMs={colony.wallMs} colonyPaused={colony.paused}/><div className="panel-bottom">Toy colony auto-runs on the wall clock · persisted here · not connectome biology</div></section>
         <section className="panel brain-panel"><h2>02 / BRAIN SOMA ATLAS <span>MaleCNS v1.0</span></h2>
           {atlas?<BrainScene atlas={atlas} frame={frame}/>:<p className="loading" role="status">Loading measured anatomy…</p>}
           <div className="panel-bottom">{atlas?.visibleIds.size.toLocaleString('en-US') ?? '…'} measured somata <a href={asset('data/brain-atlas/NOTICE.md')}>Data notice ↗</a></div>
@@ -72,11 +83,11 @@ export function App() {
       </div>
       <section className="model-status" aria-label="Model provenance">
         <strong>{replay ? `${replay.source.kind.toUpperCase()} OUTPUT` : 'ANATOMY ONLY'}</strong>
-        <p>{replay ? replay.source.name : 'No neural model connected. Garden breeding does not generate atlas activity.'}</p>
+        <p>{replay ? replay.source.name : 'No neural model connected. The 24h garden colony does not generate atlas activity.'}</p>
         {replay&&<><p>Normalization: {replay.source.normalization}</p><p>{replay.source.kind==='synthetic'?'Demonstration values only; not neural activity and not driven by the stimulus.':'Source category is declared by the uploaded file, not independently verified by this viewer.'}</p></>}
         <label>Experiment time <input type="range" aria-label="Experiment time" min="0" max={duration} step=".01" value={time} onChange={event=>setTime(Number(event.target.value))}/><span>{duration.toFixed(1)} s</span></label>
       </section>
-      <details><summary>Scientific scope &amp; customization</summary><p>The atlas contains curated cell-body positions, not neurite morphology or synaptic edges. Points keep native proportions. Missing soma locations are never generated. The brain filter selects optic, central and descending classes; it is not a complete brain segmentation.</p><p>The left panel is a visual outdoor garden (室外小花园) plus a toy ecology layer: two founding fruit flies can meet, lay eggs and grow, with a population cap. Those cartoon rules follow the experiment clock only. They are not MaleCNS-driven reproduction and not validated fly behavior. They do not write atlas activity. Load a replay JSON to show values on BrainScene by MaleCNS body ID. The bundled garden atlas file is an authored display fixture with real visible IDs; it is not coupled to the garden flies. GPU training and model inference run separately.</p><p>Dataset creators: FlyEM / HHMI Janelia, University of Cambridge, MRC Laboratory of Molecular Biology and Google Research. <a href="https://male-cns.janelia.org/download/">MaleCNS data and publication</a>, CC BY 4.0. <a href={asset('data/brain-atlas/manifest.json')}>Exact source, filters and hashes</a>.</p><p>Template code has a custom attribution-required license. Keep the linked template/author credit in your web UI and repository README. Third-party assets retain their own licenses.</p></details>
+      <details><summary>Scientific scope &amp; customization</summary><p>The atlas contains curated cell-body positions, not neurite morphology or synaptic edges. Points keep native proportions. Missing soma locations are never generated. The brain filter selects optic, central and descending classes; it is not a complete brain segmentation.</p><p>The left panel is a visual outdoor garden (室外小花园) plus a toy ecology layer. Two founding fruit flies can meet, lay eggs and grow, with a population cap. The colony follows this browser&apos;s wall clock, persists in localStorage, and catch-up applies after the tab was closed (capped at 24 simulated hours per visit). That is a cartoon, not MaleCNS-driven reproduction and not validated fly behavior. It does not write atlas activity. Play/Pause and Reset clock only move the optional brain replay. Reset colony returns to two adults and clears the saved garden clock. Load a replay JSON to show values on BrainScene by MaleCNS body ID. The bundled garden atlas file is an authored display fixture with real visible IDs; it is not coupled to the garden flies. GPU training and model inference run separately.</p><p>Dataset creators: FlyEM / HHMI Janelia, University of Cambridge, MRC Laboratory of Molecular Biology and Google Research. <a href="https://male-cns.janelia.org/download/">MaleCNS data and publication</a>, CC BY 4.0. <a href={asset('data/brain-atlas/manifest.json')}>Exact source, filters and hashes</a>.</p><p>Template code has a custom attribution-required license. Keep the linked template/author credit in your web UI and repository README. Third-party assets retain their own licenses.</p></details>
     </main>
     <Attribution/>
   </>;

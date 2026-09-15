@@ -1,6 +1,6 @@
-import { countStages, positionAt, simulateGardenLife, type GardenCritter } from '../lib/gardenLife';
+import { countStages, localHour, nightAmount, positionAt, type GardenLife } from '../lib/gardenLife';
 
-/** Outdoor small garden (室外小花园). Visual world only — `time` drives ambient motion and a toy life layer, not a model. */
+/** Outdoor small garden (室外小花园). Colony follows the browser wall clock; not a neural model. */
 
 function wrap(value: number, span: number) {
   return ((value % span) + span) % span;
@@ -88,25 +88,36 @@ function Butterfly({
   );
 }
 
-export function Environment({ time }: { time: number }) {
-  const breeze = Math.sin(time * 0.68);
-  const gust = Math.sin(time * 1.12 + 0.9);
-  const cloudA = wrap(48 + time * 5.5, 560) - 50;
-  const cloudB = wrap(250 + time * 3.6, 580) - 40;
+export function Environment({
+  life,
+  motionTime,
+  wallMs,
+  colonyPaused,
+}: {
+  life: GardenLife;
+  motionTime: number;
+  wallMs: number;
+  colonyPaused: boolean;
+}) {
+  const breeze = Math.sin(motionTime * 0.68);
+  const gust = Math.sin(motionTime * 1.12 + 0.9);
+  const cloudA = wrap(48 + motionTime * 5.5, 560) - 50;
+  const cloudB = wrap(250 + motionTime * 3.6, 580) - 40;
   const leafSway = breeze * 5.5 + gust * 1.8;
-  const life = simulateGardenLife(time);
   const counts = countStages(life.critters);
+  const night = nightAmount(localHour(wallMs));
+  const poseTime = life.colonyTime;
   const monarch = {
-    x: 210 + Math.sin(time * 0.52) * 100 + Math.sin(time * 1.25) * 16,
-    y: 92 + Math.cos(time * 0.41) * 22 + Math.sin(time * 0.88) * 8,
-    flap: Math.abs(Math.sin(time * 9.4)),
-    angle: Math.sin(time * 0.52) * 16,
+    x: 210 + Math.sin(motionTime * 0.52) * 100 + Math.sin(motionTime * 1.25) * 16,
+    y: 92 + Math.cos(motionTime * 0.41) * 22 + Math.sin(motionTime * 0.88) * 8,
+    flap: Math.abs(Math.sin(motionTime * 9.4)),
+    angle: Math.sin(motionTime * 0.52) * 16,
   };
   const cabbage = {
-    x: 300 + Math.sin(time * 0.47 + 2.1) * 78 + Math.cos(time * 1.05) * 12,
-    y: 118 + Math.cos(time * 0.36 + 1.4) * 20,
-    flap: Math.abs(Math.sin(time * 8.2 + 1)),
-    angle: Math.sin(time * 0.47 + 2.1) * 14,
+    x: 300 + Math.sin(motionTime * 0.47 + 2.1) * 78 + Math.cos(motionTime * 1.05) * 12,
+    y: 118 + Math.cos(motionTime * 0.36 + 1.4) * 20,
+    flap: Math.abs(Math.sin(motionTime * 8.2 + 1)),
+    angle: Math.sin(motionTime * 0.47 + 2.1) * 14,
   };
 
   const grasses = [
@@ -134,14 +145,14 @@ export function Environment({ time }: { time: number }) {
         viewBox="0 0 480 400"
         preserveAspectRatio="xMidYMid slice"
         role="img"
-        aria-label="Cozy outdoor small garden with a toy fruit-fly life layer: adults, eggs and young"
+        aria-label="Cozy outdoor small garden with a toy fruit-fly colony that follows this browser's clock"
       >
         <defs>
           <linearGradient id="garden-sky" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#4f9ec8" />
-            <stop offset=".45" stopColor="#8ecbe0" />
-            <stop offset=".78" stopColor="#e7d3a6" />
-            <stop offset="1" stopColor="#f2e0b6" />
+            <stop offset="0" stopColor={night > 0.55 ? '#141c30' : '#4f9ec8'} />
+            <stop offset=".45" stopColor={night > 0.55 ? '#243044' : '#8ecbe0'} />
+            <stop offset=".78" stopColor={night > 0.55 ? '#3a3340' : '#e7d3a6'} />
+            <stop offset="1" stopColor={night > 0.55 ? '#2a2830' : '#f2e0b6'} />
           </linearGradient>
           <radialGradient id="garden-sun" cx="50%" cy="50%" r="50%">
             <stop offset="0" stopColor="#fff6c8" />
@@ -164,8 +175,9 @@ export function Environment({ time }: { time: number }) {
         </defs>
 
         <rect width="480" height="400" fill="url(#garden-sky)" />
-        <circle cx="392" cy="58" r="68" fill="url(#garden-sun)" />
-        <circle cx="392" cy="58" r="24" fill="#fff4b8" />
+        <circle cx="392" cy="58" r="68" fill="url(#garden-sun)" opacity={1 - night * 0.75} />
+        <circle cx="392" cy="58" r="24" fill="#fff4b8" opacity={1 - night * 0.55} />
+        {night > 0.45 && <circle cx="86" cy="52" r="11" fill="#f2f0e4" opacity={night * 0.85} />}
 
         <g opacity=".88">
           <ellipse cx={cloudA} cy="48" rx="38" ry="14" fill="#f7fbff" />
@@ -256,7 +268,7 @@ export function Environment({ time }: { time: number }) {
         </g>
 
         {grasses.map(([x, h, phase], i) => {
-          const sway = Math.sin(time * 1.25 + phase) * 7 + breeze * 3;
+          const sway = Math.sin(motionTime * 1.25 + phase) * 7 + breeze * 3;
           return (
             <path
               key={i}
@@ -272,8 +284,10 @@ export function Environment({ time }: { time: number }) {
         <Butterfly x={monarch.x} y={monarch.y} flap={monarch.flap} angle={monarch.angle} color="#e07a32" />
         <Butterfly x={cabbage.x} y={cabbage.y} flap={cabbage.flap} angle={cabbage.angle} color="#f4f0dc" />
 
-        {life.critters.map((critter: GardenCritter) => {
-          const pose = positionAt(critter, time, life);
+        <rect width="480" height="400" fill="#071018" opacity={night * 0.38} pointerEvents="none" />
+
+        {life.critters.map(critter => {
+          const pose = positionAt(critter, poseTime, life);
           if (critter.stage === 'egg') return <Egg key={critter.id} x={pose.x} y={pose.y} angle={pose.angle} />;
           const young = critter.stage === 'young';
           return (
@@ -290,10 +304,10 @@ export function Environment({ time }: { time: number }) {
       </svg>
       <div className="garden-life-caption">
         <p>
-          Toy garden ecology · {counts.adults} adult{counts.adults === 1 ? '' : 's'} · {counts.eggs} egg
+          Toy colony {colonyPaused ? 'paused' : 'auto'} · {counts.adults} adult{counts.adults === 1 ? '' : 's'} · {counts.eggs} egg
           {counts.eggs === 1 ? '' : 's'} · {counts.young} young
         </p>
-        <span>Cartoon life rules on the garden clock. Not MaleCNS-driven reproduction and not validated fly behavior.</span>
+        <span>Browser wall clock, saved in this browser only. Not a server, not MaleCNS biology, not validated fly behavior.</span>
       </div>
     </div>
   );
