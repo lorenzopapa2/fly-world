@@ -20,10 +20,20 @@ test('invalid values and timestamps cannot be presented as activity',()=>{
  for(const value of [-1,NaN,Infinity,0]) {const replay=valid();replay.frames[1].time=value;assert.throws(()=>parseReplay(replay,ids));}
  const unnamed=valid();unnamed.source.normalization='';assert.throws(()=>parseReplay(unnamed,ids));
 });
-test('bundled synthetic example uses actual visible MaleCNS IDs',()=>{
+const visibleIds = () => {
  const bytes=readFileSync(new URL('../public/data/brain-atlas/ids.bin',import.meta.url));
  const groups=readFileSync(new URL('../public/data/brain-atlas/groups.bin',import.meta.url));
  const visible=new Set();for(let i=0;i<groups.length;i++)if(groups[i]<3)visible.add(bytes.readUInt32LE(i*4));
+ return visible;
+};
+test('bundled synthetic example uses actual visible MaleCNS IDs',()=>{
  const example=JSON.parse(readFileSync(new URL('../public/examples/model-output.example.json',import.meta.url),'utf8'));
- assert.equal(parseReplay(example,visible).source.kind,'synthetic');
+ assert.equal(parseReplay(example,visibleIds()).source.kind,'synthetic');
+});
+test('garden atlas example uses real visible MaleCNS IDs and non-empty frames',()=>{
+ const example=JSON.parse(readFileSync(new URL('../public/examples/garden-fly-activity.example.json',import.meta.url),'utf8'));
+ const replay=parseReplay(example,visibleIds());
+ assert.equal(replay.source.kind,'synthetic');
+ assert.match(replay.source.name,/not from garden flies/i);
+ assert.ok(replay.frames.some(frame=>frame.values.length>100));
 });

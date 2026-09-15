@@ -1,4 +1,6 @@
-/** Outdoor small garden (室外小花园). Visual world only — `time` drives ambient motion, not a model. */
+import { countStages, positionAt, simulateGardenLife, type GardenCritter } from '../lib/gardenLife';
+
+/** Outdoor small garden (室外小花园). Visual world only — `time` drives ambient motion and a toy life layer, not a model. */
 
 function wrap(value: number, span: number) {
   return ((value % span) + span) % span;
@@ -25,6 +27,38 @@ function Bloom({
       <circle cx="0" cy="-4.8" r="4.3" fill={petal} />
       <circle cx="0" cy="2" r="4.1" fill={petal} />
       <circle cx="0" cy="-1" r="2.15" fill="#f3de7a" />
+    </g>
+  );
+}
+
+function FruitFly({
+  x,
+  y,
+  angle,
+  scale,
+  body,
+}: {
+  x: number;
+  y: number;
+  angle: number;
+  scale: number;
+  body: string;
+}) {
+  return (
+    <g transform={`translate(${x} ${y}) rotate(${angle}) scale(${scale})`} opacity=".92">
+      <ellipse cx="0" cy="0" rx="4.4" ry="2.15" fill={body} />
+      <ellipse cx="-4.6" cy="-.6" rx="4.2" ry="1.15" fill="#d5e0d4" opacity=".78" />
+      <ellipse cx="4.3" cy="-.45" rx="3.9" ry="1.05" fill="#d5e0d4" opacity=".78" />
+      <circle cx="3.6" cy="-.2" r=".75" fill="#1a1410" />
+    </g>
+  );
+}
+
+function Egg({ x, y, angle }: { x: number; y: number; angle: number }) {
+  return (
+    <g transform={`translate(${x} ${y}) rotate(${angle})`}>
+      <ellipse cx="0" cy="0" rx="3.5" ry="2.3" fill="#f3e6c4" stroke="#c9b48a" strokeWidth=".4" />
+      <ellipse cx="-.8" cy="-.5" rx="1.3" ry=".7" fill="#fff8e6" opacity=".7" />
     </g>
   );
 }
@@ -60,10 +94,8 @@ export function Environment({ time }: { time: number }) {
   const cloudA = wrap(48 + time * 5.5, 560) - 50;
   const cloudB = wrap(250 + time * 3.6, 580) - 40;
   const leafSway = breeze * 5.5 + gust * 1.8;
-  const fly = {
-    x: 338 + Math.sin(time * 1.7) * 7 + Math.sin(time * 3.1) * 3,
-    y: 302 + Math.cos(time * 2.1) * 5,
-  };
+  const life = simulateGardenLife(time);
+  const counts = countStages(life.critters);
   const monarch = {
     x: 210 + Math.sin(time * 0.52) * 100 + Math.sin(time * 1.25) * 16,
     y: 92 + Math.cos(time * 0.41) * 22 + Math.sin(time * 0.88) * 8,
@@ -102,7 +134,7 @@ export function Environment({ time }: { time: number }) {
         viewBox="0 0 480 400"
         preserveAspectRatio="xMidYMid slice"
         role="img"
-        aria-label="Cozy outdoor small garden with a stone path, flowers, a fruit tree, compost, and sunlight"
+        aria-label="Cozy outdoor small garden with a toy fruit-fly life layer: adults, eggs and young"
       >
         <defs>
           <linearGradient id="garden-sky" x1="0" y1="0" x2="0" y2="1">
@@ -240,12 +272,29 @@ export function Environment({ time }: { time: number }) {
         <Butterfly x={monarch.x} y={monarch.y} flap={monarch.flap} angle={monarch.angle} color="#e07a32" />
         <Butterfly x={cabbage.x} y={cabbage.y} flap={cabbage.flap} angle={cabbage.angle} color="#f4f0dc" />
 
-        <g transform={`translate(${fly.x} ${fly.y})`} opacity=".85">
-          <ellipse cx="0" cy="0" rx="2.1" ry="1.15" fill="#2a241c" />
-          <ellipse cx="-2.6" cy="-.4" rx="2.4" ry=".7" fill="#c8d4c0" opacity=".7" />
-          <ellipse cx="2.4" cy="-.3" rx="2.2" ry=".65" fill="#c8d4c0" opacity=".7" />
-        </g>
+        {life.critters.map((critter: GardenCritter) => {
+          const pose = positionAt(critter, time, life);
+          if (critter.stage === 'egg') return <Egg key={critter.id} x={pose.x} y={pose.y} angle={pose.angle} />;
+          const young = critter.stage === 'young';
+          return (
+            <FruitFly
+              key={critter.id}
+              x={pose.x}
+              y={pose.y}
+              angle={pose.angle}
+              scale={young ? 0.78 : 1.25}
+              body={young ? '#6a5340' : critter.id % 2 ? '#3a2a1c' : '#5a3d24'}
+            />
+          );
+        })}
       </svg>
+      <div className="garden-life-caption">
+        <p>
+          Toy garden ecology · {counts.adults} adult{counts.adults === 1 ? '' : 's'} · {counts.eggs} egg
+          {counts.eggs === 1 ? '' : 's'} · {counts.young} young
+        </p>
+        <span>Cartoon life rules on the garden clock. Not MaleCNS-driven reproduction and not validated fly behavior.</span>
+      </div>
     </div>
   );
 }
